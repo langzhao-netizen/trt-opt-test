@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# Virtual envs (recreate with docs)
+venv/
+venv_*/
+
+# Outputs and generated assets (ckpts, engines, logs)
+outputs/
+*.engine
+*.log
+model.cache
+
+# Large third-party repos (clone separately, see README)
+TensorRT-LLM/
+TensorRT-LLM-1.1.0/
+tools/TensorRT-Model-Optimizer/
+
+# Optional: uncomment if shared/ has large model files
+# shared/
+
+# IDE / OS
+.env
+.env.*
+.idea/
+.vscode/
+*.swp
+.DS_Store
