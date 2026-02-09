@@ -12,9 +12,13 @@ export ROOT_SAVE_PATH
 mkdir -p "$ROOT_SAVE_PATH"
 
 if [ ! -d "$LLM_PTQ" ]; then
-    echo "Error: llm_ptq not found at $LLM_PTQ" >&2
+    echo "Error: llm_ptq not found at $LLM_PTQ (run ./scripts/setup.sh first)" >&2
     exit 1
 fi
 
+# Use project venv for Model Optimizer if present (so clone + setup.sh = runnable)
 cd "$LLM_PTQ"
+if [ -f "${PROJECT_ROOT}/venv_modelopt/bin/activate" ]; then
+    source "${PROJECT_ROOT}/venv_modelopt/bin/activate"
+fi
 exec ./scripts/huggingface_example.sh "$@"

@@ -13,21 +13,29 @@ Test matrix and scripts for TensorRT-LLM / Model Optimizer quantization and benc
 - **outputs/** – Generated checkpoints and engines (gitignored).
 - **tools/** – Clone TensorRT-Model-Optimizer here (gitignored, see below).
 
-## Clone dependency repos (not in this repo)
+## Quick setup on a new machine
 
-After cloning this repo, clone the following so paths used by the scripts exist:
+**Prereqs:** Linux, Python 3, git, CUDA (and TensorRT if you will build/serve engines). Then:
+
+Clone this repo, then run the one-shot setup (clones deps + creates venvs):
 
 ```bash
-# Model Optimizer (for PTQ / generate_quant_ckpt.sh)
-git clone https://github.com/NVIDIA/TensorRT-Model-Optimizer.git tools/TensorRT-Model-Optimizer
-
-# TensorRT-LLM (for convert/build/serve; pick version as needed)
-git clone -b v0.18.0 https://github.com/NVIDIA/TensorRT-LLM.git
-# and/or
-git clone -b v1.1.0 https://github.com/NVIDIA/TensorRT-LLM.git TensorRT-LLM-1.1.0
+git clone <this-repo-url> trt-opt-test && cd trt-opt-test
+./scripts/setup.sh
 ```
 
-Create venvs and install deps per your setup (e.g. TensorRT-LLM docs / Model-Optimizer README).
+- **With TensorRT-LLM 1.1.0** (default): clones Model Optimizer + TensorRT-LLM v0.18.0 + v1.1.0, creates `venv_modelopt`, `venv_trtllm0.18.0`, `venv_trtllm1.1.0`.
+- **Without 1.1.0** (save disk): `./scripts/setup.sh --no-trtllm-1.1.0`.
+
+After setup, you can run PTQ without activating a venv (the script uses `venv_modelopt` if present):
+
+```bash
+./scripts/generate_quant_ckpt.sh --model meta-llama/Llama-3.2-3B-Instruct --quant int4_awq --kv_cache_quant fp8 --tasks quant
+./scripts/run_all_ptq.sh
+./scripts/rename_ckpts_to_convention.sh
+```
+
+For TensorRT-LLM build/serve, activate the right venv: `source venv_trtllm0.18.0/bin/activate` or `venv_trtllm1.1.0/bin/activate`.
 
 ## Usage
 
