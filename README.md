@@ -11,6 +11,7 @@ Test matrix and scripts for TensorRT-LLM / Model Optimizer quantization and benc
   - `rename_ckpts_to_convention.sh` – Rename `saved_models_*` to convention names.
   - `gen_bench_dataset.py` – Benchmark dataset generation.
 - **outputs/** – Generated checkpoints and engines (gitignored).
+- **shared/** – Optional local HF model copies (gitignored, ~69GB). Scripts can use HF model IDs instead.
 - **tools/** – Clone TensorRT-Model-Optimizer here (gitignored, see below).
 
 ## Quick setup on a new machine

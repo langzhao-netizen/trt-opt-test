@@ -25,8 +25,8 @@ TensorRT-LLM/
 TensorRT-LLM-1.1.0/
 tools/TensorRT-Model-Optimizer/
 
-# Optional: uncomment if shared/ has large model files
-# shared/
+# Local model weights (69GB+); use HF model IDs in scripts or download here for offline
+shared/
 
 # IDE / OS
 .env
