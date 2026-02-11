@@ -25,13 +25,18 @@ rename_one() {
     fi
 }
 
-# Llama-3.2-3B: MODEL_NAME = basename + sed 's/[^0-9a-zA-Z\-]/_/g' => Llama-3_2-3B-Instruct
+# Model Optimizer with --kv_cache_qformat none writes dir saved_models_*_kv_none; we rename to *-kv_fp16.
+# So we try both kv_fp16/kv_fp8 (legacy) and kv_none -> kv_fp16, kv_fp8 unchanged.
 for q in fp8 int4_awq; do
     for kv in fp16 fp8; do
         base="llama-3.2-3b-instruct-trtllm-ckpt-wq_${q}-kv_${kv}"
         for prefix in "Llama-3_2-3B-Instruct" "Llama-3.2-3B-Instruct" "meta-llama_Llama-3.2-3B-Instruct"; do
             src="saved_models_${prefix}_${q}_kv_${kv}"
             [ -d "$src" ] && rename_one "$src" "$base" && break
+            if [ "$kv" = "fp16" ]; then
+                src="saved_models_${prefix}_${q}_kv_none"
+                [ -d "$src" ] && rename_one "$src" "$base" && break
+            fi
         done
     done
 done
@@ -43,17 +48,25 @@ for q in fp8 int4_awq; do
         for prefix in "Llama-3_1-8B-Instruct" "Llama-3.1-8B-Instruct" "meta-llama_Llama-3.1-8B-Instruct"; do
             src="saved_models_${prefix}_${q}_kv_${kv}"
             [ -d "$src" ] && rename_one "$src" "$base" && break
+            if [ "$kv" = "fp16" ]; then
+                src="saved_models_${prefix}_${q}_kv_none"
+                [ -d "$src" ] && rename_one "$src" "$base" && break
+            fi
         done
     done
 done
 
-# Mistral-7B: basename Mistral-7B-Instruct-v0.3 => Mistral-7B-Instruct-v0_3
+# Mistral-7B
 for q in fp8 int4_awq; do
     for kv in fp16 fp8; do
         base="mistral-7b-instruct-v0.3-trtllm-ckpt-wq_${q}-kv_${kv}"
         for prefix in "Mistral-7B-Instruct-v0_3" "Mistral-7B-Instruct-v0.3" "mistralai_Mistral-7B-Instruct-v0.3"; do
             src="saved_models_${prefix}_${q}_kv_${kv}"
             [ -d "$src" ] && rename_one "$src" "$base" && break
+            if [ "$kv" = "fp16" ]; then
+                src="saved_models_${prefix}_${q}_kv_none"
+                [ -d "$src" ] && rename_one "$src" "$base" && break
+            fi
         done
     done
 done
@@ -61,13 +74,13 @@ done
 # Fallback: any remaining saved_models_* -> try generic lowercase convention
 for dir in saved_models_*; do
     [ ! -d "$dir" ] && continue
-    # Strip saved_models_ and normalize to lowercase; replace _ with -
     rest="${dir#saved_models_}"
-    # Heuristic: last part is _<quant>_kv_<kv>
-    if [[ "$rest" =~ _(int4_awq|fp8)_kv_(fp8|fp16)$ ]]; then
+    # Match _<quant>_kv_<fp8|fp16|none>
+    if [[ "$rest" =~ _(int4_awq|fp8)_kv_(fp8|fp16|none)$ ]]; then
         quant="${BASH_REMATCH[1]}"
         kv="${BASH_REMATCH[2]}"
-        base="${rest%_${quant}_kv_${kv}}"
+        [ "$kv" = "none" ] && kv="fp16"
+        base="${rest%_${quant}_kv_${BASH_REMATCH[2]}}"
         base_lower=$(echo "$base" | tr '[:upper:]' '[:lower:]' | sed 's/[^0-9a-z]/-/g' | sed 's/--*/-/g' | sed 's/^-//;s/-$//')
         dest="${base_lower}-trtllm-ckpt-wq_${quant}-kv_${kv}"
         [ ! -e "$dest" ] && rename_one "$dir" "$dest"

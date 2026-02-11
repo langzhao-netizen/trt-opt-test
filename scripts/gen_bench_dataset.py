@@ -10,17 +10,22 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 def main():
-    out_path = Path(os.environ.get("BENCH_DATASET", str(PROJECT_ROOT / "outputs/bench_l4/dataset_15k_1.jsonl")))
+    out_path = Path(os.environ.get("BENCH_DATASET", str(PROJECT_ROOT / "outputs/bench/dataset_15k_1.jsonl")))
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    # Engine build uses MAX_SEQ_LEN=15360 but executor default may be 8192; cap to 8192 for compatibility
-    target_input_tokens = int(os.environ.get("TARGET_INPUT_TOKENS", "8192"))
+    # Default 15360 to match filename "15k" and engine MAX_SEQ_LEN; set TARGET_INPUT_TOKENS=8192 if executor caps lower
+    target_input_tokens = int(os.environ.get("TARGET_INPUT_TOKENS", "15360"))
     target_output_tokens = int(os.environ.get("TARGET_OUTPUT_TOKENS", "1"))
     num_lines = int(os.environ.get("NUM_REQUESTS", "5"))
 
-    # 使用任一本地模型的 tokenizer
+    # Tokenizer: env TOKENIZER_PATH (local dir) or TOKENIZER_HF_ID (HuggingFace id). Default HF id so no local model needed.
     from transformers import AutoTokenizer
+    tokenizer_path = os.environ.get("TOKENIZER_PATH")
+    tokenizer_hf_id = os.environ.get("TOKENIZER_HF_ID", "meta-llama/Llama-3.2-3B-Instruct")
+    tokenizer_src = tokenizer_path if tokenizer_path else tokenizer_hf_id
+    if tokenizer_path and not os.path.isabs(tokenizer_path):
+        tokenizer_src = str(PROJECT_ROOT / tokenizer_path)
     tokenizer = AutoTokenizer.from_pretrained(
-        PROJECT_ROOT / "shared/models/Llama-3.2-3B-Instruct",
+        tokenizer_src,
         trust_remote_code=True,
     )
     # 构造一段重复文本直到约 target_input_tokens

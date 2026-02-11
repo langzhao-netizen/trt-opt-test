@@ -28,7 +28,11 @@ tools/TensorRT-Model-Optimizer/
 # Local model weights only (~69GB); rest of shared/ is tracked
 shared/models/
 
-# IDE / OS
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE / OS (optional: remove .cursor/ if you want to commit Cursor rules)
+.cursor/
 .env
 .env.*
 .idea/
