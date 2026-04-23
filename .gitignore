@@ -23,10 +23,14 @@ model.cache
 # Large third-party repos (clone separately, see README)
 TensorRT-LLM/
 TensorRT-LLM-1.1.0/
+TensorRT-LLM-1.2.0/
 tools/TensorRT-Model-Optimizer/
 
-# Local model weights only (~69GB); rest of shared/ is tracked
-shared/models/
+# Local HF model weights
+models/
+
+# Runtime-created python symlink dirs
+.bin/
 
 # Jupyter
 .ipynb_checkpoints/

@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 # 项目根目录
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 def main():
@@ -28,19 +28,18 @@ def main():
         tokenizer_src,
         trust_remote_code=True,
     )
-    # 构造一段重复文本直到约 target_input_tokens
+    # IMPORTANT:
+    # Write `input_ids` directly so the input length is EXACTLY target_input_tokens.
+    # trtllm-bench supports `input_ids` in JSONL (InferenceRequest.input_ids).
     block = "The quick brown fox jumps over the lazy dog. "
     block_ids = tokenizer.encode(block, add_special_tokens=False)
     repeat = max(1, (target_input_tokens + len(block_ids) - 1) // len(block_ids))
-    prompt = (block * repeat).strip()
-    ids = tokenizer.encode(prompt, add_special_tokens=False)
-    if len(ids) > target_input_tokens:
-        prompt = tokenizer.decode(ids[:target_input_tokens])
+    ids = (block_ids * repeat)[:target_input_tokens]
     with open(out_path, "w") as f:
         for i in range(num_lines):
-            line = json.dumps({"task_id": i, "prompt": prompt, "output_tokens": target_output_tokens})
+            line = json.dumps({"task_id": i, "input_ids": ids, "output_tokens": target_output_tokens})
             f.write(line + "\n")
-    print(f"Wrote {num_lines} requests to {out_path} (input ~{len(tokenizer.encode(prompt))} tokens, output {target_output_tokens})")
+    print(f"Wrote {num_lines} requests to {out_path} (input {len(ids)} tokens, output {target_output_tokens})")
 
 if __name__ == "__main__":
     main()

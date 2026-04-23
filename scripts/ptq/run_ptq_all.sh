@@ -1,17 +1,17 @@
 #!/bin/bash
-# Batch PTQ: run generate_quant_ckpt.sh for all (model, quant, kv) combinations in the test matrix.
+# Batch PTQ: run run_ptq_single.sh for all (model, quant, kv) combinations in the test matrix.
 # Then rename saved_models_* -> convention names and verify.
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-GENERATE_SCRIPT="${SCRIPT_DIR}/generate_quant_ckpt.sh"
-RENAME_SCRIPT="${SCRIPT_DIR}/rename_ckpts_to_convention.sh"
-CHECK_SCRIPT="${SCRIPT_DIR}/check_ckpt_quant_config.py"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+GENERATE_SCRIPT="${SCRIPT_DIR}/run_ptq_single.sh"
+RENAME_SCRIPT="${SCRIPT_DIR}/rename_ckpts.sh"
+CHECK_SCRIPT="${SCRIPT_DIR}/check_ckpts.py"
 CKPT_ROOT="${CKPT_ROOT:-${PROJECT_ROOT}/outputs/ckpts}"
 
 if [ ! -x "$GENERATE_SCRIPT" ]; then
-    echo "Error: generate_quant_ckpt.sh not found or not executable: $GENERATE_SCRIPT" >&2
+    echo "Error: run_ptq_single.sh not found or not executable: $GENERATE_SCRIPT" >&2
     exit 1
 fi
 
@@ -20,6 +20,7 @@ MODELS=(
     "meta-llama/Llama-3.2-3B-Instruct"
     "meta-llama/Llama-3.1-8B-Instruct"
     "mistralai/Mistral-7B-Instruct-v0.3"
+    "mistralai/Ministral-8B-Instruct-2410"
 )
 
 # Quant + KV combinations: fp8 and int4_awq, each with fp16 (no KV quant) and fp8 KV.

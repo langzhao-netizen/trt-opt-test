@@ -1,0 +1,3 @@
+# Enable chunked prefill to reduce peak GPU memory for long context.
+# Processes prefill in chunks instead of full sequence at once.
+enable_chunked_prefill: true

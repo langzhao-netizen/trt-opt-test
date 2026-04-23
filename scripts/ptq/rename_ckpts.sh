@@ -7,7 +7,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 CKPT_ROOT="${CKPT_ROOT:-${PROJECT_ROOT}/outputs/ckpts}"
 
 cd "$CKPT_ROOT"
@@ -61,6 +61,21 @@ for q in fp8 int4_awq; do
     for kv in fp16 fp8; do
         base="mistral-7b-instruct-v0.3-trtllm-ckpt-wq_${q}-kv_${kv}"
         for prefix in "Mistral-7B-Instruct-v0_3" "Mistral-7B-Instruct-v0.3" "mistralai_Mistral-7B-Instruct-v0.3"; do
+            src="saved_models_${prefix}_${q}_kv_${kv}"
+            [ -d "$src" ] && rename_one "$src" "$base" && break
+            if [ "$kv" = "fp16" ]; then
+                src="saved_models_${prefix}_${q}_kv_none"
+                [ -d "$src" ] && rename_one "$src" "$base" && break
+            fi
+        done
+    done
+done
+
+# Ministral-8B-Instruct-2410
+for q in fp8 int4_awq; do
+    for kv in fp16 fp8; do
+        base="ministral-8b-instruct-2410-trtllm-ckpt-wq_${q}-kv_${kv}"
+        for prefix in "Ministral-8B-Instruct-2410" "Ministral_8B_Instruct_2410" "mistralai_Ministral-8B-Instruct-2410"; do
             src="saved_models_${prefix}_${q}_kv_${kv}"
             [ -d "$src" ] && rename_one "$src" "$base" && break
             if [ "$kv" = "fp16" ]; then
