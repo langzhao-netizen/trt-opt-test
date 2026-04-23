@@ -11,7 +11,7 @@ import sys
 
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(script_dir)
+    project_root = os.path.dirname(os.path.dirname(script_dir))
     folder_root = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else os.path.join(project_root, "outputs", "ckpts"))
     repo_id = os.environ.get("REPO_ID")
     token = os.environ.get("HF_TOKEN", "")

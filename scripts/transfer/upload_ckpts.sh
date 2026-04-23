@@ -10,7 +10,7 @@
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 CKPT_ROOT="${1:-${PROJECT_ROOT}/outputs/ckpts}"
 # 若传的是相对路径，则相对于项目根目录
 [[ "$CKPT_ROOT" != /* ]] && CKPT_ROOT="${PROJECT_ROOT}/${CKPT_ROOT}"

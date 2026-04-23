@@ -7,7 +7,7 @@
 **本机打包：**
 
 ```bash
-./scripts/pack_ckpts_for_transfer.sh
+./scripts/transfer/pack_ckpts.sh
 # 输出在 outputs/ckpts_archives/，每个 ckpt 一个 <name>.tar.gz + .sha256
 ```
 
@@ -34,7 +34,7 @@ done
 3. 上传：
    ```bash
    export REPO_ID="your-username/trtllm-ckpts"
-   ./scripts/upload_ckpts_to_hf.sh
+   ./scripts/transfer/upload_ckpts.sh
    ```
 
 **其他机器下载：**

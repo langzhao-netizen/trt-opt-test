@@ -1,6 +1,6 @@
 #!/bin/bash
 # 全自动：跑补全 6 个 *-kv_fp16、周期检查、失败自动拉起、完成后校验并写报告。无需人工参与。
-# 用法: nohup ./scripts/auto_kv_fp16_daemon.sh >> outputs/auto_kv_fp16_daemon.log 2>&1 &
+# 用法: nohup ./scripts/ptq/kv_fp16_daemon.sh >> outputs/auto_kv_fp16_daemon.log 2>&1 &
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

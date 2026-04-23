@@ -5,7 +5,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 CKPT_ROOT="${1:-${PROJECT_ROOT}/outputs/ckpts}"
 ARCHIVE_ROOT="${ARCHIVE_ROOT:-${PROJECT_ROOT}/outputs/ckpts_archives}"
 
