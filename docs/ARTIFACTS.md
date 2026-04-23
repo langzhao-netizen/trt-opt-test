@@ -1,74 +1,74 @@
-# 模型产物目录组织（TRT op ckpt / TRT-LLM ckpt / TRT engine）
+# Model Artifact Directory Layout (PTQ ckpt / TRT-LLM ckpt / TRT engine)
 
-项目中可能同时存在三类产物，建议按下面方式区分存放，便于脚本和环境变量统一指向。
-
----
-
-## 三类产物说明
-
-| 类型 | 来源 | 内容 | 典型用途 |
-|------|------|------|----------|
-| **PTQ ckpt（HF 风格）** | TensorRT Model Optimizer / TRT op 量化 | HF 格式：`config.json`、`*.safetensors`、`hf_quant_config.json` 等 | trtllm-bench **PyTorch 后端**（`--model_path`）、TRT-LLM `convert_checkpoint.py` 的**输入** |
-| **TRT-LLM ckpt（原生）** | TRT-LLM `convert_checkpoint.py` 从 PTQ ckpt 转换 | TRT-LLM 原生目录：`config.json`、权重分片等（非 HF layout） | TRT-LLM **build** 的输入、部分推理工具直接读 ckpt |
-| **TRT engine** | TRT-LLM `trtllm-build` 从 TRT-LLM ckpt 构建 | `.engine`、`config.json` 等 | `trtllm-run` / `trtllm-serve` 等** TensorRT 后端**推理 |
+The project may contain three distinct artifact types. Keep them in separate directories so scripts and environment variables point to the right one.
 
 ---
 
-## 推荐目录结构
+## Artifact Types
 
-在 **outputs/** 下按类型分子目录，命名一致、便于用环境变量切换：
+| Type | Source | Contents | Typical Use |
+|------|--------|----------|-------------|
+| **PTQ ckpt (HF-format)** | TensorRT Model Optimizer / TRT-op quantization | HF layout: `config.json`, `*.safetensors`, `hf_quant_config.json`, etc. | trtllm-bench **PyTorch backend** (`--model_path`); input to TRT-LLM `convert_checkpoint.py` |
+| **TRT-LLM native ckpt** | TRT-LLM `convert_checkpoint.py` converting from PTQ ckpt | TRT-LLM native layout: `config.json`, weight shards (not HF layout) | Input to TRT-LLM **build**; some inference tools read native ckpts directly |
+| **TRT engine** | TRT-LLM `trtllm-build` from TRT-LLM native ckpt | `.engine`, `config.json`, etc. | `trtllm-run` / `trtllm-serve` **TensorRT backend** inference |
+
+---
+
+## Recommended Directory Layout
+
+Under **outputs/**, separate by type with consistent names and environment variables:
 
 ```
 outputs/
-├── ckpts/                    # PTQ ckpt（HF 风格），默认 CKPT_ROOT
+├── ckpts/                    # PTQ ckpts (HF-format), default CKPT_ROOT
 │   ├── llama-3.1-8b-instruct-trtllm-ckpt-wq_fp8-kv_fp16/
 │   ├── llama-3.1-8b-instruct-trtllm-ckpt-wq_fp8-kv_fp8/
 │   ├── ministral-8b-instruct-2410-trtllm-ckpt-wq_fp8-kv_fp16/
 │   └── ...
-├── ckpts_trtllm/             # TRT-LLM 原生 ckpt（convert 后），CKPT_TRTLLM_ROOT
+├── ckpts_trtllm/             # TRT-LLM native ckpts (after convert), CKPT_TRTLLM_ROOT
 │   ├── llama-3.1-8b-instruct-trtllm-ckpt-wq_fp8-kv_fp16/
 │   └── ...
-├── engines/                  # 构建好的 TRT engine，ENGINE_ROOT
-│   ├── llama-3.1-8b-instruct-wq_fp8-kv_fp16-tp1/    # 建议带 tp/pp 等配置
+├── engines/                  # Built TRT engines, ENGINE_ROOT
+│   ├── llama-3.1-8b-instruct-wq_fp8-kv_fp16-tp1/    # include tp/pp in name
 │   └── ...
 ├── bench_15k1/
 ├── results_trtllm1.1.0_15k1_bs1_pytorch/
 └── ...
 ```
 
-- **ckpts/**：当前脚本已在用（`scripts/ptq/run_ptq_single.sh` → `ROOT_SAVE_PATH`，bench 用 `CKPT_ROOT`），保持为 **PTQ/HF 风格 ckpt** 根目录。
-- **ckpts_trtllm/**：仅当你要跑 **convert_checkpoint → build → run** 时使用；convert 输出可统一放到这里，便于与 PTQ 区分。
-- **engines/**：所有 `trtllm-build` 产出的 engine 目录放这里，子目录名建议包含模型+量化+tp（如 `llama-3.1-8b-wq_fp8-kv_fp16-tp1`）。
+- **ckpts/**: used by current scripts (`scripts/ptq/run_ptq_single.sh` → `ROOT_SAVE_PATH`; bench via `CKPT_ROOT`). Keep as the **PTQ/HF-format ckpt** root.
+- **ckpts_trtllm/**: only needed when running **convert_checkpoint → build → run**. Write convert output here to keep it separate from PTQ ckpts.
+- **engines/**: all `trtllm-build` output goes here. Include model + quant + tp in the subdirectory name (e.g. `llama-3.1-8b-wq_fp8-kv_fp16-tp1`) to avoid collisions.
 
-- **命名与上表一致**：`<model>-trtllm-ckpt-wq_<quant>-kv_<kv>`（同 outputs/ckpts、`scripts/ptq/rename_ckpts.sh`）。
-
----
-
-## 环境变量约定
-
-| 变量 | 默认路径 | 含义 |
-|------|----------|------|
-| `CKPT_ROOT` | `outputs/ckpts` | PTQ/HF 风格 ckpt 根目录（trtllm-bench PyTorch、convert 输入） |
-| `CKPT_TRTLLM_ROOT` | `outputs/ckpts_trtllm` | TRT-LLM 原生 ckpt 根目录（build 输入） |
-| `ENGINE_ROOT` | `outputs/engines` | TRT engine 根目录（trtllm-run / trtllm-serve） |
-
-脚本约定：
-
-- 所有 **PTQ 产出** 和 **基于 PTQ 的 bench**（如 `scripts/bench/run_bench.sh`）只读 **CKPT_ROOT**，不读 ckpts_trtllm/engines。
-- 若你写 **convert / build / serve** 脚本，从 `CKPT_ROOT` 读 PTQ ckpt，convert 结果写到 `CKPT_TRTLLM_ROOT`，build 结果写到 `ENGINE_ROOT`。
+- **Naming matches the table above**: `<model>-trtllm-ckpt-wq_<quant>-kv_<kv>` (same as `outputs/ckpts/` and `scripts/ptq/rename_ckpts.sh`).
 
 ---
 
-## 命名建议（与现有一致）
+## Environment Variable Conventions
 
-- **PTQ ckpt 目录名**（已在用）：`<model>-trtllm-ckpt-wq_<quant>-kv_<kv>`  
-  例：`llama-3.1-8b-instruct-trtllm-ckpt-wq_fp8-kv_fp16`、`ministral-8b-instruct-2410-trtllm-ckpt-wq_int4_awq-kv_fp8`。
-- **TRT-LLM 原生 ckpt**：可与 PTQ 同名，便于一一对应；或加后缀如 `-native`（按你习惯）。
-- **Engine 目录**：建议包含 tp/pp，如 `llama-3.1-8b-wq_fp8-kv_fp16-tp1`，避免同一模型多配置覆盖。
+| Variable | Default path | Meaning |
+|----------|-------------|---------|
+| `CKPT_ROOT` | `outputs/ckpts` | PTQ/HF-format ckpt root (trtllm-bench PyTorch, convert input) |
+| `CKPT_TRTLLM_ROOT` | `outputs/ckpts_trtllm` | TRT-LLM native ckpt root (trtllm-build input) |
+| `ENGINE_ROOT` | `outputs/engines` | TRT engine root (trtllm-run / trtllm-serve) |
+
+Script conventions:
+
+- All **PTQ output** and **PTQ-based bench** (e.g. `scripts/bench/run_bench.sh`) only read **CKPT_ROOT**; they do not touch ckpts_trtllm/ or engines/.
+- If writing **convert / build / serve** scripts: read PTQ ckpts from `CKPT_ROOT`, write convert output to `CKPT_TRTLLM_ROOT`, write build output to `ENGINE_ROOT`.
 
 ---
 
-## 流程对应关系
+## Naming Conventions (consistent with existing scripts)
+
+- **PTQ ckpt directory name** (in use): `<model>-trtllm-ckpt-wq_<quant>-kv_<kv>`  
+  Examples: `llama-3.1-8b-instruct-trtllm-ckpt-wq_fp8-kv_fp16`, `ministral-8b-instruct-2410-trtllm-ckpt-wq_int4_awq-kv_fp8`.
+- **TRT-LLM native ckpt**: same name as PTQ ckpt for 1:1 correspondence; optionally add `-native` suffix.
+- **Engine directory**: include tp/pp suffix, e.g. `llama-3.1-8b-wq_fp8-kv_fp16-tp1`, to avoid overwriting when testing multiple configs.
+
+---
+
+## Pipeline Flow
 
 ```
 PTQ (Model Optimizer)     →  outputs/ckpts/<name>/          [CKPT_ROOT]
@@ -77,15 +77,15 @@ convert_checkpoint.py     →  outputs/ckpts_trtllm/<name>/   [CKPT_TRTLLM_ROOT]
        ↓
 trtllm-build              →  outputs/engines/<name>-tp1/    [ENGINE_ROOT]
        ↓
-trtllm-run / trtllm-serve  读 ENGINE_ROOT
+trtllm-run / trtllm-serve  reads ENGINE_ROOT
 ```
 
-trtllm-bench **PyTorch 后端** 直接用 **CKPT_ROOT** 下的 PTQ ckpt，不经过 convert/build。
+trtllm-bench **PyTorch backend** consumes **CKPT_ROOT** PTQ ckpts directly — no convert or build step needed.
 
 ---
 
-## 在其他机器使用
+## Using on Another Machine
 
-- **只跑 PyTorch 后端 bench**：只拷或下载 **outputs/ckpts/**（PTQ ckpt），设 `CKPT_ROOT` 即可。
-- **要跑 TensorRT 后端**：需在同一机器上从 PTQ ckpt 做 convert → build，或拷 **ckpts_trtllm + engines**，并设 `CKPT_TRTLLM_ROOT`、`ENGINE_ROOT`。  
-详见 `docs/CKPT_TRANSFER.md` 的打包与上传方式。
+- **PyTorch backend bench only**: copy or download **outputs/ckpts/** (PTQ ckpts) and set `CKPT_ROOT`.
+- **TensorRT backend**: must run convert → build on the same machine, or transfer **ckpts_trtllm + engines** and set `CKPT_TRTLLM_ROOT`, `ENGINE_ROOT`.  
+  See `docs/CKPT_TRANSFER.md` for packaging and upload options.

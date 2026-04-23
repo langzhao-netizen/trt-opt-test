@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""生成 15k input / 1 output 的 benchmark 用 dataset（JSONL，每行一个请求）。"""
+"""Generate a benchmark dataset (JSONL, one request per line) with 15k input / 1 output tokens."""
 import json
 import os
 import sys
 from pathlib import Path
 
-# 项目根目录
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 

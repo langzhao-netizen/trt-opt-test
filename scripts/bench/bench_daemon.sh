@@ -1,8 +1,9 @@
 #!/bin/bash
-# 全自动：对 outputs/ckpts 下的 12 个最终 ckpt（6 *-kv_fp8 + 6 *-kv_fp16）
-# 用 trtllm==1.1.0 的 PyTorch backend 跑 15k input / 1 output（bs=1）测试，持续监管、失败自动拉起与修复缺依赖。
+# Fully automated: runs 15k-input/1-output (bs=1) benchmarks for the 12 final ckpts in outputs/ckpts
+# (6 *-kv_fp8 + 6 *-kv_fp16) using trtllm==1.1.0 PyTorch backend. Monitors the runner,
+# restarts on failure, and auto-installs missing dependencies.
 #
-# 用法：
+# Usage:
 #   nohup ./scripts/bench/bench_daemon.sh >> outputs/bench_daemon.log 2>&1 &
 set -e
 

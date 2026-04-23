@@ -1,19 +1,19 @@
-# 完整测试矩阵：所有要测的 case
+# Full Test Matrix
 
-三种模型 × 五类 GPU × 权重量化 × KV Cache，只列「可能最优」的 case。每个 case 一行。
+Three models × five GPU types × weight quantization × KV Cache. Only the likely-optimal cases per combination. One case per row.
 
 ---
 
-## 必测 case（30 个）
+## Required Cases (30)
 
-| # | 模型 | GPU | 权重量化 (Weight) | KV Cache | 说明 |
-|---|------|-----|-------------------|----------|------|
-| 1 | Llama-3.2-3B | A100 | W4A16 AWQ | FP16 | Ampere 最佳权重量化，KV 不量化 |
-| 2 | Llama-3.2-3B | A100 | W4A16 AWQ | FP8 | Ampere 最佳权重量化，KV 量化 |
+| # | Model | GPU | Weight Quantization | KV Cache | Notes |
+|---|-------|-----|---------------------|----------|-------|
+| 1 | Llama-3.2-3B | A100 | W4A16 AWQ | FP16 | Best weight quant on Ampere, no KV quant |
+| 2 | Llama-3.2-3B | A100 | W4A16 AWQ | FP8 | Best weight quant on Ampere, KV quantized |
 | 3 | Llama-3.2-3B | A10 | W4A16 AWQ | FP16 | |
 | 4 | Llama-3.2-3B | A10 | W4A16 AWQ | FP8 | |
-| 5 | Llama-3.2-3B | H100 | FP8 | FP16 | Hopper/Ada 最佳权重量化，KV 不量化 |
-| 6 | Llama-3.2-3B | H100 | FP8 | FP8 | Hopper/Ada 最佳权重量化，KV 量化 |
+| 5 | Llama-3.2-3B | H100 | FP8 | FP16 | Best weight quant on Hopper/Ada, no KV quant |
+| 6 | Llama-3.2-3B | H100 | FP8 | FP8 | Best weight quant on Hopper/Ada, KV quantized |
 | 7 | Llama-3.2-3B | L4 | FP8 | FP16 | |
 | 8 | Llama-3.2-3B | L4 | FP8 | FP8 | |
 | 9 | Llama-3.2-3B | L40 | FP8 | FP16 | |
@@ -41,22 +41,22 @@
 
 ---
 
-## 可选 baseline（3 个，做精度/性能参考）
+## Optional Baselines (3, for accuracy/perf reference)
 
-| # | 模型 | GPU | 权重量化 (Weight) | KV Cache | 说明 |
-|---|------|-----|-------------------|----------|------|
-| 31 | Llama-3.2-3B | H100 | FP16 | FP16 | 无量化基线 |
-| 32 | Llama-3.1-8B | H100 | FP16 | FP16 | 无量化基线 |
-| 33 | Mistral-7B | H100 | FP16 | FP16 | 无量化基线 |
+| # | Model | GPU | Weight Quantization | KV Cache | Notes |
+|---|-------|-----|---------------------|----------|-------|
+| 31 | Llama-3.2-3B | H100 | FP16 | FP16 | Unquantized baseline |
+| 32 | Llama-3.1-8B | H100 | FP16 | FP16 | Unquantized baseline |
+| 33 | Mistral-7B | H100 | FP16 | FP16 | Unquantized baseline |
 
 ---
 
-## 可选：A 系列 INT8（SmoothQuant W8A8）
+## Optional: A-series INT8 (SmoothQuant W8A8)
 
-A100/A10 无 FP8 权重量化，若需对比「8bit 权+激活」可加测 INT8 SmoothQuant。**注意**：Model Optimizer 的 `int8_sq` 对 LLaMA 3.x / Mistral 标为 ❌，产 INT8 ckpt 需走 **TRT-LLM SmoothQuant** 或其它工具链；产好后可按下表加测。
+A100/A10 do not support FP8 weight quantization. If comparing "8-bit weights + activations" is needed, add INT8 SmoothQuant cases. **Note**: Model Optimizer's `int8_sq` is marked ❌ for LLaMA 3.x / Mistral — producing INT8 ckpts requires the **TRT-LLM SmoothQuant** pipeline or another toolchain. Once produced, add the following cases:
 
-| # | 模型 | GPU | 权重量化 (Weight) | KV Cache |
-|---|------|-----|-------------------|----------|
+| # | Model | GPU | Weight Quantization | KV Cache |
+|---|-------|-----|---------------------|----------|
 | 34 | Llama-3.2-3B | A100 | INT8 SmoothQuant (W8A8) | FP16 |
 | 35 | Llama-3.2-3B | A100 | INT8 SmoothQuant (W8A8) | FP8 |
 | 36 | Llama-3.2-3B | A10 | INT8 SmoothQuant (W8A8) | FP16 |
@@ -70,44 +70,43 @@ A100/A10 无 FP8 权重量化，若需对比「8bit 权+激活」可加测 INT8 
 | 44 | Mistral-7B | A10 | INT8 SmoothQuant (W8A8) | FP16 |
 | 45 | Mistral-7B | A10 | INT8 SmoothQuant (W8A8) | FP8 |
 
-**合计**：12 个 case（3 模型 × 2 GPU × 2 KV）。需单独产出 INT8 权重量化 ckpt（TRT-LLM SmoothQuant 流程），再在 A100/A10 上按上表测。
+**Total**: 12 cases (3 models × 2 GPUs × 2 KV). Requires producing INT8 weight ckpts via TRT-LLM SmoothQuant, then benchmarking on A100/A10.
 
 ---
 
-## 合计
+## Summary
 
-- **必测**：30 个 case
-- **可选 baseline**：3 个 case
-- **可选 A 系列 INT8**：12 个 case
-- **总计（必测 + baseline）**：33 个 case
-- **总计（含 A 系列 INT8）**：45 个 case
+- **Required**: 30 cases
+- **Optional baselines**: 3 cases
+- **Optional A-series INT8**: 12 cases
+- **Total (required + baselines)**: 33 cases
+- **Total (including A-series INT8)**: 45 cases
 
 ---
 
-## 需要产出的 checkpoint（权重量化，先产再测）
+## Required Checkpoints (produce before benchmarking)
 
-| 模型 | 格式 | 用途 | 目录示例（统一命名） |
-|------|------|------|----------------------|
+| Model | Format | GPU targets | Directory example (naming convention) |
+|-------|--------|-------------|---------------------------------------|
 | Llama-3.2-3B | fp8 | H100/L4/L40 | `llama-3.2-3b-instruct-trtllm-ckpt-wq_fp8-kv_fp16` |
 | Llama-3.2-3B | int4_awq (W4A16 AWQ) | A100/A10/H100/L4/L40 | `llama-3.2-3b-instruct-trtllm-ckpt-wq_int4_awq-kv_fp16` |
 | Llama-3.1-8B | fp8 | H100/L4/L40 | `llama-3.1-8b-instruct-trtllm-ckpt-wq_fp8-kv_fp16` |
-| Llama-3.1-8B | int4_awq | 五类卡 | `llama-3.1-8b-instruct-trtllm-ckpt-wq_int4_awq-kv_fp16` |
+| Llama-3.1-8B | int4_awq | All 5 GPU types | `llama-3.1-8b-instruct-trtllm-ckpt-wq_int4_awq-kv_fp16` |
 | Mistral-7B | fp8 | H100/L4/L40 | `mistral-7b-instruct-v0.3-trtllm-ckpt-wq_fp8-kv_fp16` |
-| Mistral-7B | int4_awq | 五类卡 | `mistral-7b-instruct-v0.3-trtllm-ckpt-wq_int4_awq-kv_fp16` |
+| Mistral-7B | int4_awq | All 5 GPU types | `mistral-7b-instruct-v0.3-trtllm-ckpt-wq_int4_awq-kv_fp16` |
 
-**KV Cache：产 ckpt 时定 vs 运行时定（TRT-LLM 1.1.0）**  
-- **TensorRT 后端**（`convert_checkpoint.py` → build → run）：`TrtLlmArgs` 里规定 `kv_cache_config.dtype` 必须为 `"auto"`，**不支持**运行时改 KV 精度。KV 行为由 **convert 时** 写进 ckpt 的 `quant_mode`（如 `--int8_kv_cache`）决定。要测 FP16 KV 与 INT8/FP8 KV，需 **产两份 ckpt**（一次不带 `--int8_kv_cache`，一次带）。  
-- **PyTorch 后端**（LLM API，不 build engine）：`kv_cache_config.dtype` 可在 **运行时** 传入（如 `KvCacheConfig(dtype='fp8')` 或 `'auto'`）。同一份权重量化 ckpt，跑两次（dtype 不同）即可，**不需产两份 ckpt**。  
-因此：用 **convert_checkpoint + TensorRT 跑** 时，两种方式**不一样**（KV 只能在 convert 时定）；用 **PyTorch 后端** 时，只需运行时定 KV，一份 ckpt 即可。
+**KV Cache: set at ckpt-produce time vs. runtime (TRT-LLM 1.1.0)**
+- **TensorRT backend** (`convert_checkpoint.py` → build → run): `TrtLlmArgs` requires `kv_cache_config.dtype` to be `"auto"`. KV precision is fixed at **convert time** via `quant_mode` (e.g. `--int8_kv_cache`). Testing FP16 KV vs INT8/FP8 KV requires **two separate ckpts** (one pass without `--int8_kv_cache`, one with).
+- **PyTorch backend** (LLM API, no engine build): `kv_cache_config.dtype` is passed at **runtime** (e.g. `KvCacheConfig(dtype='fp8')` or `'auto'`). One weight-quantized ckpt can cover both KV modes in two runs — **no need to produce two ckpts**.
 
-**若加测 A 系列 INT8**：需用 TRT-LLM SmoothQuant 流程为每个模型产出 INT8（W8A8）ckpt，目录示例：`*_int8_sq` 或 `*_w8a8`，再在 A100/A10 上测上表「可选：A 系列 INT8」的 12 个 case。
+**If adding A-series INT8**: use the TRT-LLM SmoothQuant pipeline to produce INT8 (W8A8) ckpts per model (e.g. `*_int8_sq` or `*_w8a8`), then run the 12 optional cases on A100/A10.
 
 ---
 
-## 按 (模型, GPU) 索引：每个组合要测的 case
+## By (Model, GPU): Cases per combination
 
-| 模型 | GPU | Case 1 | Case 2 |
-|------|-----|--------|--------|
+| Model | GPU | Case 1 | Case 2 |
+|-------|-----|--------|--------|
 | Llama-3.2-3B | A100 | W4A16 AWQ + FP16 KV | W4A16 AWQ + FP8 KV |
 | Llama-3.2-3B | A10 | W4A16 AWQ + FP16 KV | W4A16 AWQ + FP8 KV |
 | Llama-3.2-3B | H100 | FP8 + FP16 KV | FP8 + FP8 KV |
@@ -124,4 +123,4 @@ A100/A10 无 FP8 权重量化，若需对比「8bit 权+激活」可加测 INT8 
 | Mistral-7B | L4 | FP8 + FP16 KV | FP8 + FP8 KV |
 | Mistral-7B | L40 | FP8 + FP16 KV | FP8 + FP8 KV |
 
-**可选 A 系列 INT8**（需先产 INT8 ckpt）：A100 / A10 每个组合再加 INT8 SmoothQuant + FP16 KV、INT8 SmoothQuant + FP8 KV（见上文「可选：A 系列 INT8」表）。
+**Optional A-series INT8** (requires INT8 ckpts first): for each A100/A10 combination, add INT8 SmoothQuant + FP16 KV and INT8 SmoothQuant + FP8 KV (see the Optional A-series INT8 table above).

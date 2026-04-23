@@ -1,6 +1,7 @@
 #!/bin/bash
-# 全自动：跑补全 6 个 *-kv_fp16、周期检查、失败自动拉起、完成后校验并写报告。无需人工参与。
-# 用法: nohup ./scripts/ptq/kv_fp16_daemon.sh >> outputs/auto_kv_fp16_daemon.log 2>&1 &
+# Fully automated: generates all 6 *-kv_fp16 ckpts, polls on an interval, restarts on failure,
+# validates on completion, and writes a report. No manual intervention required.
+# Usage: nohup ./scripts/ptq/kv_fp16_daemon.sh >> outputs/auto_kv_fp16_daemon.log 2>&1 &
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -14,8 +15,8 @@ INTERVAL=30
 TARGET_KV_FP16=6
 MAX_RESTARTS=99999
 
-# 保证 nohup 子进程用上 venv，PTQ 才能找到 numpy 等
-# 注意：venv 必须放在 PATH 最前，否则可能命中 pyenv shim / 系统 python 而缺包
+# Ensure nohup subprocesses use the venv; venv must come first in PATH to avoid
+# pyenv shim / system python picking up the wrong interpreter and missing packages.
 export PATH="${HOME}/.pyenv/shims:${HOME}/.pyenv/bin:/usr/bin:${PATH}"
 [ -d "${PROJECT_ROOT}/venv_modelopt/bin" ] && export PATH="${PROJECT_ROOT}/venv_modelopt/bin:${PATH}"
 export CKPT_ROOT
@@ -23,7 +24,7 @@ export ROOT_SAVE_PATH="$CKPT_ROOT"
 cd "$PROJECT_ROOT"
 
 count_kv_fp16() { ls -d "$CKPT_ROOT"/*-kv_fp16 2>/dev/null | wc -l; }
-# 只认实际跑 PTQ 的进程，避免把 nohup/tail -f 等误判为在跑
+# Match only actual PTQ processes; nohup/tail -f etc. must not be treated as running.
 is_running() { pgrep -f "hf_ptq\.py" >/dev/null 2>&1 || pgrep -f "huggingface_example\.sh" >/dev/null 2>&1; }
 
 log() { echo "[$(date -Iseconds)] $*"; }
@@ -33,7 +34,7 @@ VENV_PIP="${PROJECT_ROOT}/venv_modelopt/bin/pip"
 LAST_FIX_EPOCH_FILE="${PROJECT_ROOT}/outputs/.auto_kv_fp16_last_fix_epoch"
 
 maybe_fix_env() {
-    # 失败原因自动诊断与修复（只做“确定可修复”的依赖缺失）
+    # Auto-diagnose and fix only clearly recoverable failures (missing pip dependencies).
     [ -x "$VENV_PIP" ] || return 0
     [ -f "$CONTINUE_LOG" ] || return 0
 
@@ -41,7 +42,7 @@ maybe_fix_env() {
     now="$(date +%s)"
     last="0"
     [ -f "$LAST_FIX_EPOCH_FILE" ] && last="$(cat "$LAST_FIX_EPOCH_FILE" 2>/dev/null || echo 0)"
-    # 避免 30s 频率下重复 pip（2 分钟冷却）
+    # 2-minute cooldown to avoid repeated pip installs on every 30s poll cycle.
     if [ $((now - last)) -lt 120 ]; then
         return 0
     fi

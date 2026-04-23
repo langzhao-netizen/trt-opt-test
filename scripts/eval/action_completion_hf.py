@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Multi-sample: 同一 system prompt + 多条 action_completion，看 cold vs 后续请求延迟（prefix 需 trtllm engine 才有复用）。"""
+"""Multi-sample: same system prompt across multiple action_completion requests — measures cold vs. subsequent latency. Prefix KV reuse requires a trtllm engine with block_reuse enabled."""
 import json
 import sys
 import time
@@ -13,7 +13,7 @@ Evaluate the full chat history. Check whether the assistant's final answer satis
 Respond with a single word: "true" (no quotes) if every task satisfies all five conditions, and "false" (no quotes) otherwise. If there are no user asks, output "true" (no quotes)"""
 
 NUM_SAMPLES = 5
-MAX_INPUT_TOKENS = 8192  # 用完整 chat_history，不截断
+MAX_INPUT_TOKENS = 8192  # full chat_history, no truncation
 
 def main():
     from datasets import load_dataset
@@ -34,7 +34,7 @@ def main():
     ds = load_dataset("rungalileo/action_completion", split="train", trust_remote_code=True)
     prompts = []
     for i in range(NUM_SAMPLES):
-        chat = ds[i]["chat_history"]  # 完整 chat_history，不截断
+        chat = ds[i]["chat_history"]
         user_text = f"Chat history:\n```\n{chat}\n```"
         messages = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": user_text}]
         prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
@@ -69,7 +69,7 @@ def main():
         "cold_latency_s": round(cold_s, 2),
         "subsequent_mean_latency_s": round(mean_subsequent_s, 2) if mean_subsequent_s else None,
         "outputs": outputs,
-        "note": "HF 无 prefix KV 复用；测 prefix 效果需 trtllm engine + enable_block_reuse，对比 cold vs subsequent",
+        "note": "HF baseline has no prefix KV reuse; to measure prefix reuse effect use trtllm engine + enable_block_reuse and compare cold vs. subsequent latency",
     }
     out_path = PROJECT_ROOT / "outputs/bench_prefix_kv_action_completion/quick_result.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
