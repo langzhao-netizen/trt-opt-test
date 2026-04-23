@@ -1,6 +1,6 @@
 #!/bin/bash
 # Wrapper to run TensorRT-Model-Optimizer PTQ and produce a single quantized HF checkpoint.
-# Output: outputs/ckpts/saved_models_<model>_<quant>_kv_<kv> (then use rename_ckpts_to_convention.sh).
+# Output: outputs/ckpts/saved_models_<model>_<quant>_kv_<kv> (then use scripts/ptq/rename_ckpts.sh).
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

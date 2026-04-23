@@ -36,16 +36,11 @@ outputs/
 └── ...
 ```
 
-- **ckpts/**：当前脚本已在用（`generate_quant_ckpt.sh` → `ROOT_SAVE_PATH`，bench 用 `CKPT_ROOT`），保持为 **PTQ/HF 风格 ckpt** 根目录。
+- **ckpts/**：当前脚本已在用（`scripts/ptq/run_ptq_single.sh` → `ROOT_SAVE_PATH`，bench 用 `CKPT_ROOT`），保持为 **PTQ/HF 风格 ckpt** 根目录。
 - **ckpts_trtllm/**：仅当你要跑 **convert_checkpoint → build → run** 时使用；convert 输出可统一放到这里，便于与 PTQ 区分。
 - **engines/**：所有 `trtllm-build` 产出的 engine 目录放这里，子目录名建议包含模型+量化+tp（如 `llama-3.1-8b-wq_fp8-kv_fp16-tp1`）。
 
-**另：models/ckpts_trtllm/**（供 TensorRT-LLM 0.18.0）
-
-- 用于存放 **从 HF 模型直接 convert** 得到的 TRT-LLM 原生 ckpt（如 `convert_checkpoint.py --use_fp8 --fp8_kv_cache`），与 PTQ 流程无关。
-- 这些 ckpt 作为 `trtllm-build` 的输入，构建出的 engine 供 **TensorRT-LLM 0.18.0** 使用。
-- **命名与上表一致**：`<model>-trtllm-ckpt-wq_<quant>-kv_<kv>`（同 outputs/ckpts、rename_ckpts_to_convention.sh）。
-- 脚本：`scripts/convert_hf_to_trtllm_ckpt.sh`，默认输出到 `models/ckpts_trtllm/`；详见 `models/ckpts_trtllm/README.md`。
+- **命名与上表一致**：`<model>-trtllm-ckpt-wq_<quant>-kv_<kv>`（同 outputs/ckpts、`scripts/ptq/rename_ckpts.sh`）。
 
 ---
 
@@ -59,7 +54,7 @@ outputs/
 
 脚本约定：
 
-- 所有 **PTQ 产出** 和 **基于 PTQ 的 bench**（如 `run_all_trtllm_bench_15k1_bs1_pytorch.sh`）只读 **CKPT_ROOT**，不读 ckpts_trtllm/engines。
+- 所有 **PTQ 产出** 和 **基于 PTQ 的 bench**（如 `scripts/bench/run_bench.sh`）只读 **CKPT_ROOT**，不读 ckpts_trtllm/engines。
 - 若你写 **convert / build / serve** 脚本，从 `CKPT_ROOT` 读 PTQ ckpt，convert 结果写到 `CKPT_TRTLLM_ROOT`，build 结果写到 `ENGINE_ROOT`。
 
 ---

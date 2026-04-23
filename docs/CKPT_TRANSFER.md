@@ -69,7 +69,7 @@ rsync -avz --progress outputs/ckpts/ user@other-host:/path/to/trt-opt-test/outpu
 - **trtllm-bench**：`--model_path` 指向某个 ckpt 目录，例如  
   `trtllm-bench --model meta-llama/Llama-3.1-8B-Instruct --model_path outputs/ckpts/llama-3.1-8b-instruct-trtllm-ckpt-wq_fp8-kv_fp16 ...`
 - **本项目脚本**：设置 `CKPT_ROOT` 为包含这 16 个子目录的根目录即可，例如  
-  `export CKPT_ROOT=/path/to/ckpts` 再跑 `run_all_trtllm_bench_15k1_bs1_pytorch.sh` 等。
+  `export CKPT_ROOT=/path/to/ckpts` 再跑 `scripts/bench/run_bench.sh` 等。
 
 ## 体积参考
 

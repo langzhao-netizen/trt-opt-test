@@ -6,7 +6,7 @@
 #   export REPO_ID="your-username/trt-models-test"   # repo must exist
 #   export HF_TOKEN="hf_xxx"                         # or: huggingface-cli login
 #   ./scripts/upload_ckpts_to_hf.sh                 # upload outputs/ckpts
-#   ./scripts/upload_ckpts_to_hf.sh shared/models   # upload shared/models (or use upload_models_to_hf.sh)
+#   ./scripts/upload_ckpts_to_hf.sh 
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -3,7 +3,7 @@
 # 用 trtllm==1.1.0 的 PyTorch backend 跑 15k input / 1 output（bs=1）测试，持续监管、失败自动拉起与修复缺依赖。
 #
 # 用法：
-#   nohup ./scripts/auto_bench_15k1output_trtllm110_pytorch_daemon.sh >> outputs/auto_bench_15k1output_trtllm110_pytorch_daemon.log 2>&1 &
+#   nohup ./scripts/bench/bench_daemon.sh >> outputs/bench_daemon.log 2>&1 &
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -14,7 +14,7 @@ RUNNER="${SCRIPT_DIR}/bench_impl.py"
 VENV_PY="${PROJECT_ROOT}/venv_trtllm1.1.0/bin/python3"
 VENV_PIP="${PROJECT_ROOT}/venv_trtllm1.1.0/bin/pip"
 
-DAEMON_LOG="${PROJECT_ROOT}/outputs/auto_bench_15k1output_trtllm110_pytorch_daemon.log"
+DAEMON_LOG="${PROJECT_ROOT}/outputs/bench_daemon.log"
 RUNNER_LOG="${OUT_DIR}/runner.log"
 RESULT_JSONL="${OUT_DIR}/results_15k1output.jsonl"
 
@@ -43,7 +43,7 @@ PY
 }
 
 is_running() {
-    pgrep -f "bench_15k1output_trtllm110_pytorch\\.py" >/dev/null 2>&1
+    pgrep -f "bench_impl\.py" >/dev/null 2>&1
 }
 
 maybe_fix_env() {

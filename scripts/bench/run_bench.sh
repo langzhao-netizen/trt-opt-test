@@ -1,9 +1,9 @@
 #!/bin/bash
 # General trtllm-bench runner: input/output length and result dirs driven by env.
 # Usage:
-#   ./scripts/run_trtllm_bench_pytorch.sh
-#   TARGET_INPUT_TOKENS=8192 TARGET_OUTPUT_TOKENS=1 ./scripts/run_trtllm_bench_pytorch.sh
-#   TARGET_INPUT_TOKENS=32000 CUDA_VISIBLE_DEVICES=0 ./scripts/run_trtllm_bench_pytorch.sh
+#   ./scripts/bench/run_bench.sh
+#   TARGET_INPUT_TOKENS=8192 TARGET_OUTPUT_TOKENS=1 ./scripts/bench/run_bench.sh
+#   TARGET_INPUT_TOKENS=32000 CUDA_VISIBLE_DEVICES=0 ./scripts/bench/run_bench.sh
 # Env: CKPT_ROOT, TARGET_INPUT_TOKENS (default 15360), TARGET_OUTPUT_TOKENS (default 1),
 #      NUM_REQUESTS (5), WARMUP (2), CUDA_VISIBLE_DEVICES (optional; for long context set to 0).
 set -euo pipefail
