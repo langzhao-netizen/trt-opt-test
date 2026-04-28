@@ -28,9 +28,12 @@ PY3=""
 [ -z "$PY3" ] && PY3="$(command -v python3 2>/dev/null)" || true
 if [ -n "$PY3" ]; then
     mkdir -p "${SCRIPT_DIR}/.bin"
-    ln -sf "$PY3" "${SCRIPT_DIR}/.bin/python" 2>/dev/null || true
+    # Use a wrapper script instead of a symlink: symlinks outside the venv tree break pyvenv.cfg detection.
+    # rm -f first to avoid following an existing symlink when writing.
+    rm -f "${SCRIPT_DIR}/.bin/python"
+    printf '#!/bin/bash\nexec "%s" "$@"\n' "$PY3" > "${SCRIPT_DIR}/.bin/python"
+    chmod +x "${SCRIPT_DIR}/.bin/python"
     export PATH="${SCRIPT_DIR}/.bin:$PATH"
-    # Allow downstream scripts to use an explicit interpreter (avoid PATH surprises under nohup/pyenv)
     export PYTHON="$PY3"
 fi
 exec ./scripts/huggingface_example.sh "$@"

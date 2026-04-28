@@ -67,6 +67,15 @@ source "${PROJECT_ROOT}/venv_trtllm1.1.0/bin/activate"
 TRTLLM_BENCH="${PROJECT_ROOT}/venv_trtllm1.1.0/bin/trtllm-bench"
 [ ! -x "$TRTLLM_BENCH" ] && { log "ERROR: trtllm-bench not found at $TRTLLM_BENCH"; exit 1; }
 
+# TRT-LLM 1.1.0 links against CUDA 13 and TRT 10 libs not in system LD path by default.
+VENV_SITE="${PROJECT_ROOT}/venv_trtllm1.1.0/lib/python3.12/site-packages"
+export LD_LIBRARY_PATH="\
+/usr/local/cuda/targets/x86_64-linux/lib:\
+${VENV_SITE}/tensorrt_libs:\
+${VENV_SITE}/nvidia/nccl/lib:\
+${VENV_SITE}/nvidia/nvjitlink/lib:\
+${VENV_SITE}/nvidia/nvshmem/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+
 # Long context: use chunked prefill and single GPU if not set
 CHUNKED_OPTS=""
 if [[ "${TARGET_INPUT_TOKENS}" -gt 16000 ]] && [[ -f "${PROJECT_ROOT}/configs/chunked_prefill.yaml" ]]; then
